@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import MoneyABI from './Money.json';
 
-function Manage({ userTokens, provider, truncateAndCopyAddress }) {
+function Manage({ userTokens, provider, truncateAndCopyAddress, addTokenToMetaMask }) {
 
   const [amountToBurn, setAmountToBurn] = useState(0);
 
@@ -37,6 +37,11 @@ function Manage({ userTokens, provider, truncateAndCopyAddress }) {
           <button className='manage-btns' onClick={() => renounceOwnership(token.address)}>Renounce Ownership</button>
           <input className='manage-btns' placeholder="Amount to Burn" onChange={e => setAmountToBurn(e.target.value)} />
           <button className='manage-btns' onClick={() => burnTokens(token.address, amountToBurn)}>Burn Tokens</button>
+          <button className='mint-btn'
+            onClick={() => addTokenToMetaMask(token.address, token.symbol, '18', 'https://github.com/b3Rhunter/fine-logo/raw/main/eth.png')}
+          >
+            Add to Wallet
+          </button>
           </div>
         
     </div>

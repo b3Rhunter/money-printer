@@ -195,6 +195,32 @@ function App() {
     setMintTokens(false)
   }
 
+  const addTokenToMetaMask = async (address, symbol, decimals, image) => {
+    try {
+      const wasAdded = await window.ethereum.request({
+        method: 'wallet_watchAsset',
+        params: {
+          type: 'ERC20',
+          options: {
+            address,
+            symbol,
+            decimals,
+            image,
+          },
+        },
+      });
+  
+      if (wasAdded) {
+        console.log('Token was added!');
+      } else {
+        console.log('Token was not added');
+      }
+    } catch (error) {
+      console.log('Error adding token to MetaMask:', error);
+    }
+  };
+  
+
   return (
     <div className="App">
       <header>
@@ -255,6 +281,11 @@ function App() {
                   <span>Price: {ethers.utils.formatEther(token.pricePerToken)} ETH</span>
                   <input className='mint-input' placeholder="enter amount..." onChange={e => setAmountToMint(e.target.value)} />
                   <button className='mint-btn' onClick={() => mintToken(amountToMint, token)}>MINT</button>
+                  <button className='mint-btn'
+                    onClick={() => addTokenToMetaMask(token.address, token.symbol, '18', 'https://github.com/b3Rhunter/fine-logo/raw/main/eth.png')}
+                  >
+                    Add to Wallet
+                  </button>
                   </div>
                 </div>
               </div>
@@ -262,7 +293,7 @@ function App() {
           </div>
             )}
             {manageTokens && (
-              <Manage userTokens={userTokens} provider={provider} truncateAndCopyAddress={truncateAndCopyAddress} />
+              <Manage userTokens={userTokens} provider={provider} truncateAndCopyAddress={truncateAndCopyAddress} addTokenToMetaMask={addTokenToMetaMask}/>
             )}
           </div>
         )}

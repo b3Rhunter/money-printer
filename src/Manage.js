@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import MoneyABI from './Money.json';
 
-function Manage({ userTokens, provider, truncateAndCopyAddress, addTokenToMetaMask }) {
+function Manage({ showNotification, userTokens, provider, truncateAndCopyAddress, addTokenToMetaMask }) {
 
   const [amountToBurn, setAmountToBurn] = useState(0);
 
@@ -11,6 +11,7 @@ function Manage({ userTokens, provider, truncateAndCopyAddress, addTokenToMetaMa
     const moneyContract = new ethers.Contract(address, MoneyABI, signer);
     const tx = await moneyContract.renounceOwnership();
     await tx.wait()
+    showNotification("Contract Renounced!");
   };
 
   const burnTokens = async (address, amount) => {
@@ -18,6 +19,7 @@ function Manage({ userTokens, provider, truncateAndCopyAddress, addTokenToMetaMa
     const moneyContract = new ethers.Contract(address, MoneyABI, signer);
     const tx = await moneyContract.burn(ethers.utils.parseEther(amount.toString()));
     await tx.wait()
+    showNotification("Tokens Burned!");
   };
 
   return (

@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import MoneyPrinterABI from './MoneyPrinter.json';
 import MoneyABI from './Money.json';
 import Manage from './Manage';
+import Notification from './Notification';
 
 const MoneyPrinterAddress = "0x4D19ACB400f52F11c727d5dA9614644a7Ca8dF0A";
 
@@ -24,6 +25,7 @@ function App() {
   const [createToken, setCreateToken] = useState(true);
   const [mintTokens, setMintTokens] = useState(false);
   const [manageTokens, setManage] = useState(false);
+  const [notification, setNotification] = useState({ message: '', show: false });
 
   const connect = async () => {
     try {
@@ -74,8 +76,10 @@ function App() {
         const ens = await ensProvider.lookupAddress(address);
         if (ens !== null) {
           setEnsName(ens)
+          showNotification("Welcome " + ens);
         } else {
           setEnsName(displayAddress)
+          showNotification("Welcome " + displayAddress);
         }
       }
       await signer.signMessage("Welcome to MoneyPrinter.fun!");
@@ -83,11 +87,13 @@ function App() {
       setConnected(true);
     } catch (error) {
       console.log(error)
+      showNotification("error...");
     }
   }
 
   const disconnect = () => {
     setConnected(false);
+    showNotification("disconnected...");
   }
 
   const printToken = async () => {
@@ -107,6 +113,7 @@ function App() {
     } else {
       console.error("ERC20Created event not found in transaction receipt");
     }
+    showNotification("Token Created!");
   };
 
   const mintToken = async (amount, token) => {
@@ -120,7 +127,9 @@ function App() {
     const costPerTokenInWei = ethers.utils.parseEther(ethers.utils.formatEther(token.pricePerToken));
     const totalCost = ethers.BigNumber.from(costPerTokenInWei).mul(amount);
   
-    await moneyContract.mint(amount, { value: totalCost });
+    const tx = await moneyContract.mint(amount, { value: totalCost });
+    await tx.wait()
+    showNotification("Tokens Minted!");
   };
   
 
@@ -212,14 +221,20 @@ function App() {
   
       if (wasAdded) {
         console.log('Token was added!');
+        showNotification("Token added!");
       } else {
         console.log('Token was not added');
+        showNotification("error...");
       }
     } catch (error) {
       console.log('Error adding token to MetaMask:', error);
+      showNotification("error...");
     }
   };
   
+  const showNotification = (message) => {
+    setNotification({ message, show: true });
+  };
 
   return (
     <div className="App">
@@ -293,11 +308,16 @@ function App() {
           </div>
             )}
             {manageTokens && (
-              <Manage userTokens={userTokens} provider={provider} truncateAndCopyAddress={truncateAndCopyAddress} addTokenToMetaMask={addTokenToMetaMask}/>
+              <Manage showNotification={showNotification} userTokens={userTokens} provider={provider} truncateAndCopyAddress={truncateAndCopyAddress} addTokenToMetaMask={addTokenToMetaMask}/>
             )}
           </div>
         )}
       </section>
+      <Notification
+        message={notification.message}
+        show={notification.show}
+        setShow={(show) => setNotification({ ...notification, show })}
+      />
     </div>
   );
 }

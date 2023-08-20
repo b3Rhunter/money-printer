@@ -224,7 +224,7 @@ function App() {
   return (
     <div className="App">
       <header>
-        <h1>MoneyPrinter.fun</h1>
+        <h1 className='title'>MoneyPrinter.fun</h1>
       </header>
       <section>
         {!connected && (

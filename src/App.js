@@ -78,7 +78,7 @@ function App() {
           setEnsName(displayAddress)
         }
       }
-      await signer.signMessage("Hello World");
+      await signer.signMessage("Welcome to MoneyPrinter.fun!");
       setProvider(_provider);
       setConnected(true);
     } catch (error) {

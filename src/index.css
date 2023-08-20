@@ -292,4 +292,18 @@ code {
   .nav button {
     font-size: 12px;
   }
+
+  .manage-btns {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    margin-bottom: 1em;
+  }
+  
+  .manage-btns button, .manage-btns input {
+    width: 100%;
+  }
 }

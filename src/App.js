@@ -176,6 +176,7 @@ function App() {
   const truncateAndCopyAddress = (address) => {
     const truncatedAddress = address.slice(0, 6) + "...";
     navigator.clipboard.writeText(address);
+    showNotification("copied!");
     return truncatedAddress;
   };
 

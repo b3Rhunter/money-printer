@@ -123,10 +123,10 @@ function App() {
     }
     const signer = provider.getSigner();
     const moneyContract = new ethers.Contract(token.address, MoneyABI, signer);
-  
-    const costPerTokenInWei = ethers.utils.parseEther(ethers.utils.formatEther(token.pricePerToken));
-    const totalCost = ethers.BigNumber.from(costPerTokenInWei).mul(amount);
     const parseAmount = ethers.utils.parseEther(amount);
+    const costPerTokenInWei = ethers.utils.parseEther(ethers.utils.formatEther(token.pricePerToken));
+    const totalCost = ethers.BigNumber.from(costPerTokenInWei).mul(parseAmount);
+    
     const tx = await moneyContract.mint(parseAmount, { value: totalCost });
     await tx.wait()
     showNotification("Tokens Minted!");

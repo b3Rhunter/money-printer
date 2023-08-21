@@ -126,8 +126,8 @@ function App() {
   
     const costPerTokenInWei = ethers.utils.parseEther(ethers.utils.formatEther(token.pricePerToken));
     const totalCost = ethers.BigNumber.from(costPerTokenInWei).mul(amount);
-  
-    const tx = await moneyContract.mint(amount, { value: totalCost });
+    const parseAmount = ethers.utils.parseEther(amount);
+    const tx = await moneyContract.mint(parseAmount, { value: totalCost });
     await tx.wait()
     showNotification("Tokens Minted!");
   };

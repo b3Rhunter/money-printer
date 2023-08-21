@@ -5,7 +5,7 @@ import MoneyABI from './Money.json';
 import Manage from './Manage';
 import Notification from './Notification';
 
-const MoneyPrinterAddress = "0x4D19ACB400f52F11c727d5dA9614644a7Ca8dF0A";
+const MoneyPrinterAddress = "0x046Cc7037922742C46bc939DcB9fdABCD8c6dC06";
 
 function App() {
 
@@ -21,7 +21,6 @@ function App() {
   const [userTokens, setUserTokens] = useState([]);
   const [allTokens, setAllTokens] = useState([]);
   const [ensName, setEnsName] = useState(null);
-
   const [createToken, setCreateToken] = useState(true);
   const [mintTokens, setMintTokens] = useState(false);
   const [manageTokens, setManage] = useState(false);
@@ -30,7 +29,7 @@ function App() {
   const connect = async () => {
     try {
       let _provider;
-
+      /*
       _provider = new ethers.providers.Web3Provider(window.ethereum);
       await _provider.send("eth_requestAccounts", []);
       const network = await _provider.getNetwork();
@@ -66,6 +65,7 @@ function App() {
           }
         }
       }
+      */
       _provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = _provider.getSigner();
       await signer.signMessage("Welcome to MoneyPrinter.fun!");
@@ -91,21 +91,14 @@ function App() {
     }
   }
 
-  const disconnect = () => {
-    setConnected(false);
-    showNotification("disconnected...");
-  }
-
   const printToken = async () => {
     const signer = provider.getSigner();
     const moneyPrinterContract = new ethers.Contract(MoneyPrinterAddress, MoneyPrinterABI, signer);
     const costPerTokenInWei = ethers.utils.parseEther(costPerToken.toString());
     const result = await moneyPrinterContract.print(name, symbol, initialSupply, maxSupply, costPerTokenInWei, { value: ethers.utils.parseEther('0.003') });
     const receipt = await result.wait();
-
     const eventTopic = ethers.utils.id("ERC20Created(address,address)");
     const log = receipt.logs.find(log => log.topics[0] === eventTopic);
-
     if (log) {
       const event = moneyPrinterContract.interface.decodeEventLog("ERC20Created", log.data, log.topics);
       const tokenAddress = event.tokenAddress;
@@ -123,14 +116,24 @@ function App() {
     }
     const signer = provider.getSigner();
     const moneyContract = new ethers.Contract(token.address, MoneyABI, signer);
-    const parseAmount = ethers.utils.parseEther(amount);
-    const costPerTokenInWei = ethers.utils.parseEther(ethers.utils.formatEther(token.pricePerToken));
-    const totalCost = ethers.BigNumber.from(costPerTokenInWei).mul(parseAmount);
-    
-    const tx = await moneyContract.mint(parseAmount, { value: totalCost });
-    await tx.wait()
+  
+    // No need to parse the amount to wei, just use it as is
+    const amountToMint = ethers.BigNumber.from(amount);
+  
+    // Get the price per token in wei
+    const costPerTokenInWei = ethers.utils.parseEther(token.pricePerToken.toString());
+  
+    // Calculate the total cost in wei
+    const totalCost = token.pricePerToken.mul(amount);
+  
+    // Mint the tokens with the total cost in wei
+    const tx = await moneyContract.mint(amount, { value: totalCost });
+    await tx.wait();
     showNotification("Tokens Minted!");
   };
+  
+  
+  
   
 
   const getAllTokens = async () => {
@@ -180,12 +183,10 @@ function App() {
     return truncatedAddress;
   };
 
-  useEffect(() => {
-    if (connected) {
-      getUserTokens();
-      getAllTokens();
-    }
-  }, [connected, tokenAddress]);
+  const disconnect = () => {
+    setConnected(false);
+    showNotification("disconnected...");
+  }
 
   function showCreate() {
     setCreateToken(true)
@@ -219,7 +220,6 @@ function App() {
           },
         },
       });
-  
       if (wasAdded) {
         console.log('Token was added!');
         showNotification("Token added!");
@@ -236,6 +236,13 @@ function App() {
   const showNotification = (message) => {
     setNotification({ message, show: true });
   };
+
+  useEffect(() => {
+    if (connected) {
+      getUserTokens();
+      getAllTokens();
+    }
+  }, [connected, tokenAddress]);
 
   return (
     <div className="App">

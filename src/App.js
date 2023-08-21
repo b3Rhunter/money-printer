@@ -277,7 +277,7 @@ function App() {
             <input placeholder="Initial Supply" onChange={e => setInitialSupply(e.target.value)} />
             <input placeholder="Supply Cap" onChange={e => setMaxSupply(e.target.value)} />
             <input placeholder="Set Token Price" onChange={e => setCostPerToken(e.target.value)} />
-            <button onClick={printToken}>Create Token</button>
+            <button onClick={printToken}>Deploy</button>
             </div>
             )}
             {mintTokens && (

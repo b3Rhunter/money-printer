@@ -68,6 +68,7 @@ function App() {
       }
       _provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = _provider.getSigner();
+      await signer.signMessage("Welcome to MoneyPrinter.fun!");
       const { ethereum } = window;
       if(ethereum) {
         const ensProvider = new ethers.providers.InfuraProvider('mainnet');
@@ -82,7 +83,6 @@ function App() {
           showNotification("Welcome " + displayAddress);
         }
       }
-      await signer.signMessage("Welcome to MoneyPrinter.fun!");
       setProvider(_provider);
       setConnected(true);
     } catch (error) {

@@ -29,7 +29,7 @@ function App() {
   const connect = async () => {
     try {
       let _provider;
-      /*
+
       _provider = new ethers.providers.Web3Provider(window.ethereum);
       await _provider.send("eth_requestAccounts", []);
       const network = await _provider.getNetwork();
@@ -65,7 +65,7 @@ function App() {
           }
         }
       }
-      */
+      
       _provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = _provider.getSigner();
       await signer.signMessage("Welcome to MoneyPrinter.fun!");

@@ -4,8 +4,10 @@ import MoneyPrinterABI from './MoneyPrinter.json';
 import MoneyABI from './Money.json';
 import Manage from './Manage';
 import Notification from './Notification';
+import FLATTENED_SOURCE_CODE from './FLATTENED_SOURCE_CODE.sol';
+import $ from 'jquery';
 
-const MoneyPrinterAddress = "0x046Cc7037922742C46bc939DcB9fdABCD8c6dC06";
+const MoneyPrinterAddress = "0x3d8dddBD3D8ff4B5B2B9258bB279ef171Fa088B2";
 
 function App() {
 
@@ -25,11 +27,12 @@ function App() {
   const [mintTokens, setMintTokens] = useState(false);
   const [manageTokens, setManage] = useState(false);
   const [notification, setNotification] = useState({ message: '', show: false });
+  const [verificationStatus, setVerificationStatus] = useState('');
+  const [verificationGuid, setVerificationGuid] = useState(null);
 
   const connect = async () => {
     try {
       let _provider;
-
       _provider = new ethers.providers.Web3Provider(window.ethereum);
       await _provider.send("eth_requestAccounts", []);
       const network = await _provider.getNetwork();
@@ -116,25 +119,11 @@ function App() {
     }
     const signer = provider.getSigner();
     const moneyContract = new ethers.Contract(token.address, MoneyABI, signer);
-  
-    // No need to parse the amount to wei, just use it as is
-    const amountToMint = ethers.BigNumber.from(amount);
-  
-    // Get the price per token in wei
-    const costPerTokenInWei = ethers.utils.parseEther(token.pricePerToken.toString());
-  
-    // Calculate the total cost in wei
     const totalCost = token.pricePerToken.mul(amount);
-  
-    // Mint the tokens with the total cost in wei
     const tx = await moneyContract.mint(amount, { value: totalCost });
     await tx.wait();
     showNotification("Tokens Minted!");
   };
-  
-  
-  
-  
 
   const getAllTokens = async () => {
     const signer = provider.getSigner();
@@ -244,6 +233,92 @@ function App() {
     }
   }, [connected, tokenAddress]);
 
+  const verifyContractOnEtherscan = async (token) => {
+    try {
+      const encodedConstructorArgs = ethers.utils.defaultAbiCoder.encode(
+        ['address', 'string', 'string', 'uint256', 'uint256', 'uint256'],
+        [
+          "0xBC72198d65075Fdad2CA7B8db79EfF5B51c8B30D",
+          "Test Token",
+          "TEST",
+          ethers.utils.parseUnits("100", 18).toString(),
+          ethers.utils.parseUnits("1000000000", 18).toString(),
+          ethers.utils.parseUnits("10000000000000", 0).toString()
+        ]
+      );
+
+      fetch('/FLATTENED_SOURCE_CODE.sol')
+      .then(response => response.text())
+      .then(sourceCode => {
+        const body = {
+          apikey: "TD3H5FAWJEGB1RRW8DU8KDH7MFFEPKVYEU",
+          module: 'contract',
+          action: 'verifysourcecode',
+          contractaddress: "0xccC5342CDBb7f3B474EBF5E2d82708819cfA0658",
+          sourceCode:FLATTENED_SOURCE_CODE, // Use the fetched source code
+          codeformat: 'solidity-single-file',
+          contractname: "Money",
+          compilerversion: "v0.8.7+commit.e28d00a7",
+          optimizationUsed: "0",
+          runs: "200",
+          constructorArguements: encodedConstructorArgs.slice(2),
+        };
+
+        $.ajax({
+          type: "POST",
+          url: "https://api.basescan.org/api",
+          data: body,
+          success: function (result) {
+            // Save the GUID to the state variable
+            setVerificationGuid(result.result);
+            setVerificationStatus('Verification submitted on Etherscan. Click "Check Status" to see the result.');
+            showNotification('Verification submitted on Etherscan!');
+          },
+          error: function (result) {
+            console.log("error!");
+            console.log(result);
+          }
+        });
+      })
+      .catch(error => console.error('Error reading source code:', error));
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+  // Define a function to check the verification status
+const checkVerificationStatus = (guid) => {
+  $.ajax({
+    type: "GET",
+    url: "https://api.basescan.org/api",
+    data: {
+      apikey: "TD3H5FAWJEGB1RRW8DU8KDH7MFFEPKVYEU",
+      guid: guid,
+      module: "contract",
+      action: "checkverifystatus"
+    },
+    success: function (result) {
+      console.log("status : " + result.status);   //0=Error, 1=Pass 
+      console.log("message : " + result.message); //OK, NOTOK
+      console.log("result : " + result.result);   //result explanation
+      if (result.status === '1') {
+        showNotification('Verification status: ' + result.result);
+        setVerificationStatus('Verification status: ' + result.result);
+      } else {
+        showNotification('Verification status check failed: ' + result.result);
+      }
+    },
+    error: function (result) {
+      alert('error');
+    }
+  });
+};
+  
+  function verify(token) {
+    verifyContractOnEtherscan(token);
+  }
+  
+
   return (
     <div className="App">
       <header>
@@ -309,6 +384,13 @@ function App() {
                   >
                     Add to Wallet
                   </button>
+                  {/* 
+                  <button onClick={() => verify(token)}>Verify</button>
+                  <button onClick={() => checkVerificationStatus(verificationGuid)}>Check Status</button>
+                  <div className='verification-status'>
+                    {verificationStatus}
+                  </div>
+                  */}
                   </div>
                 </div>
               </div>

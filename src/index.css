@@ -156,7 +156,7 @@ background: linear-gradient(to right, #3596ae 0%, #c1edf9 100%);
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  height: auto;
+  height: 250px;
 }
 
 .token-info {
